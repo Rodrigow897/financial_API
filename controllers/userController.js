@@ -27,3 +27,26 @@ const createUser = async(req, res) => {
         res.status(500).json({error: 'could not create user'})
     }
 }
+
+const patchUser = async(req, res) => {
+    const {id} = req.params
+    const {name, email} = req.body
+    try {
+        if (!name || !email) {
+            return res.status(400).json({ error: 'all fields are mandatory'})
+        }
+        const response = await pool.query('UPDATE tb_users SET name = $1, email = $2 WHERE id = $3 RETURNING *',
+            [name, email, id]
+        )
+        res.status(200).json(response.rows[0])
+    } catch (err) {
+        console.error('could not update user', err)
+        res.status(500).json({error: 'could not update user'})
+    }
+}
+
+module.exports = {
+    getUsers,
+    createUser,
+    patchUser
+};
