@@ -25,3 +25,50 @@ const getTransactions = async(_, res) => {
         res.status(500).json({error: 'error searching transactions'})
     }
 }
+
+const patchTransactions = async(req, res) => {
+    const {id} = req.params
+    const {name} = req.body
+    try {
+
+        if (!name) {
+            return res.status(400).json({ error: 'all fields are mandatory'})
+        }
+
+        const response = await pool.query('UPDATE tb_transactions SET name = $1 WHERE id = $2 RETURNING *',
+            [name, id]
+        )
+
+        if (response.rowCount === 0) {
+            return res.status(404).json({ error: 'transaction not found'})
+        }
+
+        res.status(200).json(response.rows[0])
+    }catch (err) {
+        console.error('could not update transaction', err)
+        res.status(500).json({error: 'could not update transaction'})
+    }
+}
+
+const deleteTransactions = async(req, res) => {
+    const {id} = req.params
+    try {
+        const response = await pool.query('DELETE FROM tb_transactions WHERE id = $1', [id])
+
+        if (response.rowCount === 0) {
+            return res.status(400).json({ error: 'transaction not found'})
+        }
+
+        res.status(200).json({ message: 'transaction deleted successfully'})
+    }catch (err) {
+        console.error('could not delete transaction', err)
+        res.status(500).json({error: 'could not delete transaction'})
+    }
+}
+
+module.exports = {
+    createTransactions,
+    getTransactions,
+    patchTransactions,
+    deleteTransactions
+}
